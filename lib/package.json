@@ -1,0 +1,20 @@
+{
+  "name": "crypto-utils",
+  "version": "1.0.0",
+  "description": "Shared crypto utilities for AWS Lambda functions",
+  "main": "crypto-utils.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "keywords": ["aws", "lambda", "crypto", "kms", "utils"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-crypto/client-node": "^4.0.0",
+    "@types/node": "^18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+} 

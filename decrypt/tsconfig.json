@@ -9,8 +9,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "rootDir": "./",
-    "sourceMap": true
+    "rootDir": "../",
+    "sourceMap": true,
+    "baseUrl": "../",
+    "paths": {
+      "crypto-utils": ["lib/crypto-utils"]
+    }
   },
+  "include": ["*.ts", "../lib/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 } 

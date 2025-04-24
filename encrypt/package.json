@@ -1,0 +1,23 @@
+{
+  "name": "encrypt-function",
+  "version": "1.0.0",
+  "description": "AWS Lambda encryption function",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["aws", "lambda", "crypto", "kms", "encrypt"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-crypto/client-node": "^4.0.0",
+    "@types/aws-lambda": "^8.10.92",
+    "@types/node": "^18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "esbuild": "^0.19.0"
+  }
+} 

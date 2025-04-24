@@ -10,6 +10,12 @@ Globals:
   Function:
     Timeout: 29
     MemorySize: 1024
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        NODE_PATH: ./node_modules:/opt/nodejs/node_modules
 
 Parameters:
   KMSKeyId:
@@ -30,6 +36,10 @@ Resources:
         ApiKeyRequired: true  # Enable API Key validation
       EndpointConfiguration: 
         Type: REGIONAL
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
 
   # API Key definition
   ApiKey:
@@ -61,64 +71,17 @@ Resources:
       UsagePlanId: !Ref UsagePlan
 
   HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: hello/
       Handler: app.lambdaHandler
-      Runtime: nodejs22.x
-      Architectures:
-        - x86_64
       Events:
         HelloWorld:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
-            RestApiId: !Ref ApiGatewayApi  # Reference to the API
+            RestApiId: !Ref ApiGatewayApi
             Path: /hello
             Method: get
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: true
-        EntryPoints: 
-        - app.ts
-
-  CryptoFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: crypto/
-      Handler: app.lambdaHandler
-      Runtime: nodejs22.x
-      Architectures:
-        - x86_64
-      Environment:
-        Variables:
-          KMS_KEY_ID: !Ref KMSKeyId
-          AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
-      Policies:
-        - KMSEncryptPolicy:
-            KeyId: !Ref KMSKeyId
-        - KMSDecryptPolicy:
-            KeyId: !Ref KMSKeyId
-        - Statement:
-            - Effect: Allow
-              Action:
-                - kms:GenerateDataKey
-              Resource: !Ref KMSKeyId
-      Events:
-        Encrypt:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ApiGatewayApi  # Reference to the API
-            Path: /crypto/encrypt
-            Method: post
-        Decrypt:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ApiGatewayApi  # Reference to the API
-            Path: /crypto/decrypt
-            Method: post
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -127,6 +90,79 @@ Resources:
         Sourcemap: true
         EntryPoints: 
         - app.ts
+
+  # 加密函数
+  EncryptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: encrypt/
+      Handler: index.lambdaHandler
+      Environment:
+        Variables:
+          KMS_KEY_ID: !Ref KMSKeyId
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      Policies:
+        - KMSEncryptPolicy:
+            KeyId: !Ref KMSKeyId
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+                - kms:Decrypt
+              Resource: !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+      Events:
+        Encrypt:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /crypto/encrypt
+            Method: post
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        External:
+          - crypto-utils
+        EntryPoints: 
+        - index.ts
+
+  # 解密函数
+  DecryptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: decrypt/
+      Handler: index.lambdaHandler
+      Environment:
+        Variables:
+          KMS_KEY_ID: !Ref KMSKeyId
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      Policies:
+        - KMSDecryptPolicy:
+            KeyId: !Ref KMSKeyId
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+      Events:
+        Decrypt:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /crypto/decrypt
+            Method: post
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        External:
+          - crypto-utils
+        EntryPoints: 
+        - index.ts
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -147,9 +183,9 @@ Outputs:
   HelloWorldApi:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  CryptoApiEncrypt:
-    Description: "API Gateway endpoint URL for Prod stage for Crypto Encrypt function"
+  EncryptApi:
+    Description: "API Gateway endpoint URL for Prod stage for Encrypt function"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/crypto/encrypt/"
-  CryptoApiDecrypt:
-    Description: "API Gateway endpoint URL for Prod stage for Crypto Decrypt function"
+  DecryptApi:
+    Description: "API Gateway endpoint URL for Prod stage for Decrypt function"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/crypto/decrypt/"
