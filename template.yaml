@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Crypto Service
+
+  Sample SAM Template for Crypto Service
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 29
+    MemorySize: 1024
+
+Parameters:
+  KMSKeyId:
+    Type: String
+    Description: The KMS Key ID to use for encryption and decryption
+  ApiKeyValue:
+    Type: String
+    Description: The value for the API Key
+    NoEcho: true  # Makes parameter value invisible in CloudFormation console
+
+Resources:
+  # API Gateway API definition
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        ApiKeyRequired: true  # Enable API Key validation
+      EndpointConfiguration: 
+        Type: REGIONAL
+
+  # API Key definition
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn: ApiGatewayApiProdStage  # Ensure API is deployed before creating
+    Properties:
+      Enabled: true
+      Name: crypto-service-api-key
+      Value: !Ref ApiKeyValue
+      Description: "API Key for Crypto Service"
+
+  # Usage plan definition
+  UsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn: ApiGatewayApiProdStage  # Explicitly add dependency
+    Properties:
+      UsagePlanName: crypto-service-usage-plan
+      Description: "Usage plan for Crypto Service"
+      ApiStages:
+        - ApiId: !Ref ApiGatewayApi
+          Stage: Prod
+
+  # Associate API Key with usage plan
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref ApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlan
+
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: hello/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      Events:
+        HelloWorld:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi  # Reference to the API
+            Path: /hello
+            Method: get
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+        - app.ts
+
+  CryptoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: crypto/
+      Handler: app.lambdaHandler
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          KMS_KEY_ID: !Ref KMSKeyId
+          AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      Policies:
+        - KMSEncryptPolicy:
+            KeyId: !Ref KMSKeyId
+        - KMSDecryptPolicy:
+            KeyId: !Ref KMSKeyId
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:GenerateDataKey
+              Resource: !Ref KMSKeyId
+      Events:
+        Encrypt:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi  # Reference to the API
+            Path: /crypto/encrypt
+            Method: post
+        Decrypt:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi  # Reference to the API
+            Path: /crypto/decrypt
+            Method: post
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+        - app.ts
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  ApiGatewayUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  ApiKeyId:
+    Description: "API Key ID"
+    Value: !Ref ApiKey
+  HelloWorldFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  CryptoApiEncrypt:
+    Description: "API Gateway endpoint URL for Prod stage for Crypto Encrypt function"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/crypto/encrypt/"
+  CryptoApiDecrypt:
+    Description: "API Gateway endpoint URL for Prod stage for Crypto Decrypt function"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/crypto/decrypt/"
