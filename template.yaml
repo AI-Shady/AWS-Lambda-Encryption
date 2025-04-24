@@ -101,15 +101,6 @@ Resources:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
-      Policies:
-        - KMSEncryptPolicy:
-            KeyId: !Ref KMSKeyId
-        - Statement:
-            - Effect: Allow
-              Action:
-                - kms:GenerateDataKey
-                - kms:Decrypt
-              Resource: !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
       Events:
         Encrypt:
           Type: Api
@@ -138,14 +129,6 @@ Resources:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
-      Policies:
-        - KMSDecryptPolicy:
-            KeyId: !Ref KMSKeyId
-        - Statement:
-            - Effect: Allow
-              Action:
-                - kms:Decrypt
-              Resource: !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
       Events:
         Decrypt:
           Type: Api
@@ -189,3 +172,9 @@ Outputs:
   DecryptApi:
     Description: "API Gateway endpoint URL for Prod stage for Decrypt function"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/crypto/decrypt/"
+  EncryptFunction:
+    Description: "Encrypt Lambda Function ARN"
+    Value: !GetAtt EncryptFunction.Arn
+  DecryptFunction:
+    Description: "Decrypt Lambda Function ARN"
+    Value: !GetAtt DecryptFunction.Arn
