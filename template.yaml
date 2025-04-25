@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Crypto Service
+  AWS Lambda Encryption Service
 
-  Sample SAM Template for Crypto Service
+  A serverless encryption service using AWS KMS for data encryption and decryption.
   
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -91,7 +91,7 @@ Resources:
         EntryPoints: 
         - app.ts
 
-  # 加密函数
+  # Encryption function
   EncryptFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -125,7 +125,7 @@ Resources:
         - encrypt/index.ts
         - lib/crypto-utils.ts
 
-  # 解密函数
+  # Decryption function
   DecryptFunction:
     Type: AWS::Serverless::Function
     Properties:

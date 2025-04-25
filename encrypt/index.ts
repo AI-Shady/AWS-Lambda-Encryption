@@ -22,18 +22,18 @@ export const lambdaHandler = async (
       return createErrorResponse(400, 'Data field is required');
     }
 
-    // 创建KMS密钥环
+    // Create KMS keyring
     const keyring = await createKeyring();
     
-    // 使用提供的数据进行加密
+    // Encrypt data with default context
     const { result } = await encrypt(keyring, Buffer.from(data), {
       encryptionContext: defaultEncryptionContext
     });
     
-    // 转换为Base64编码
+    // Convert to Base64
     const encryptedData = result.toString('base64');
     
-    // 返回成功响应
+    // Return success response
     return createSuccessResponse({
       message: 'Data encrypted successfully',
       encryptedData,

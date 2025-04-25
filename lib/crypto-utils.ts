@@ -1,16 +1,16 @@
 import { KmsKeyringNode, buildClient, CommitmentPolicy } from '@aws-crypto/client-node';
 
-// 构建加密客户端
+// Initialize encryption client
 export const { encrypt, decrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
 
-// 默认加密上下文
+// Default encryption context
 export const defaultEncryptionContext = {
   stage: 'local',
   purpose: 'test',
   origin: 'crypto-service'
 };
 
-// 创建KMS密钥环
+// Create KMS keyring
 export const createKeyring = async (): Promise<KmsKeyringNode> => {
   try {
     const keyId = process.env.KMS_KEY_ID;
@@ -25,27 +25,23 @@ export const createKeyring = async (): Promise<KmsKeyringNode> => {
   }
 };
 
-// 封装API响应
+// API response interface
 export interface ApiResponse {
   statusCode: number;
   body: string;
 }
 
-// 创建成功响应
-export const createSuccessResponse = (data: Record<string, any>): ApiResponse => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify(data)
-  };
-};
+// Create success response
+export const createSuccessResponse = (data: Record<string, any>): ApiResponse => ({
+  statusCode: 200,
+  body: JSON.stringify(data)
+});
 
-// 创建错误响应
-export const createErrorResponse = (statusCode: number, message: string, error?: any): ApiResponse => {
-  return {
-    statusCode,
-    body: JSON.stringify({
-      message,
-      error: error instanceof Error ? error.message : error || 'Unknown error'
-    })
-  };
-}; 
+// Create error response
+export const createErrorResponse = (statusCode: number, message: string, error?: any): ApiResponse => ({
+  statusCode,
+  body: JSON.stringify({
+    message,
+    error: error instanceof Error ? error.message : error || 'Unknown error'
+  })
+}); 
