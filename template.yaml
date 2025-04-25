@@ -101,6 +101,13 @@ Resources:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:Encrypt
+                - kms:GenerateDataKey
+              Resource: !Ref KMSKeyId
       Events:
         Encrypt:
           Type: Api
@@ -129,6 +136,12 @@ Resources:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:Decrypt
+              Resource: !Ref KMSKeyId
       Events:
         Decrypt:
           Type: Api
