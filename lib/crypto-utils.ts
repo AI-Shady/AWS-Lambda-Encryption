@@ -1,10 +1,7 @@
-import { KmsKeyringNode, buildClient, CommitmentPolicy, DecryptInput } from '@aws-crypto/client-node';
+import { KmsKeyringNode, buildClient, CommitmentPolicy } from '@aws-crypto/client-node';
 
 // 构建加密客户端
 export const { encrypt, decrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
-
-// 导出 DecryptInput 类型
-export type { DecryptInput };
 
 // 默认加密上下文
 export const defaultEncryptionContext = {

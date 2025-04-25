@@ -5,7 +5,7 @@ import {
   defaultEncryptionContext,
   createSuccessResponse,
   createErrorResponse
-} from 'crypto-utils';
+} from '../lib/crypto-utils';
 
 export const lambdaHandler = async (
   event: APIGatewayProxyEvent

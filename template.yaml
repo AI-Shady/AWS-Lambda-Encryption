@@ -95,8 +95,8 @@ Resources:
   EncryptFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: encrypt/
-      Handler: index.lambdaHandler
+      CodeUri: ./
+      Handler: encrypt/index.lambdaHandler
       Environment:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
@@ -121,17 +121,16 @@ Resources:
         Minify: true
         Target: "es2020"
         Sourcemap: true
-        External:
-          - crypto-utils
         EntryPoints: 
-        - index.ts
+        - encrypt/index.ts
+        - lib/crypto-utils.ts
 
   # 解密函数
   DecryptFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: decrypt/
-      Handler: index.lambdaHandler
+      CodeUri: ./
+      Handler: decrypt/index.lambdaHandler
       Environment:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
@@ -155,10 +154,9 @@ Resources:
         Minify: true
         Target: "es2020"
         Sourcemap: true
-        External:
-          - crypto-utils
         EntryPoints: 
-        - index.ts
+        - decrypt/index.ts
+        - lib/crypto-utils.ts
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

@@ -1,11 +1,12 @@
 {
   "name": "crypto-utils",
   "version": "1.0.0",
-  "description": "Shared crypto utilities for AWS Lambda functions",
-  "main": "crypto-utils.js",
+  "description": "Crypto utilities for AWS Lambda encryption service",
+  "main": "dist/crypto-utils.js",
+  "types": "dist/crypto-utils.d.ts",
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w"
+    "prepare": "npm run build"
   },
   "keywords": ["aws", "lambda", "crypto", "kms", "utils"],
   "author": "",

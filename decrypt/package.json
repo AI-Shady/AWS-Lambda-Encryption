@@ -1,7 +1,7 @@
 {
   "name": "decrypt-function",
   "version": "1.0.0",
-  "description": "AWS Lambda decryption function",
+  "description": "Decryption Lambda function",
   "main": "index.js",
   "scripts": {
     "prebuild": "cd ../lib && npm run build",
@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-crypto/client-node": "^4.0.0",
-    "@types/aws-lambda": "^8.10.92",
+    "@types/aws-lambda": "^8.10.0",
     "@types/node": "^18.0.0",
     "crypto-utils": "file:../lib"
   },
