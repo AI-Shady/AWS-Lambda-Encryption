@@ -113,7 +113,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref ApiGatewayApi
-            Path: /crypto/encrypt
+            Path: /encrypt
             Method: post
     Metadata:
       BuildMethod: esbuild
@@ -147,7 +147,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref ApiGatewayApi
-            Path: /crypto/decrypt
+            Path: /decrypt
             Method: post
     Metadata:
       BuildMethod: esbuild
@@ -181,10 +181,10 @@ Outputs:
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
   EncryptApi:
     Description: "API Gateway endpoint URL for Prod stage for Encrypt function"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/crypto/encrypt/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/encrypt/"
   DecryptApi:
     Description: "API Gateway endpoint URL for Prod stage for Decrypt function"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/crypto/decrypt/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/decrypt/"
   EncryptFunction:
     Description: "Encrypt Lambda Function ARN"
     Value: !GetAtt EncryptFunction.Arn
