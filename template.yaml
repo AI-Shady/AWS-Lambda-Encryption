@@ -16,6 +16,7 @@ Globals:
     Environment:
       Variables:
         NODE_PATH: ./node_modules:/opt/nodejs/node_modules
+    Role: arn:aws:iam::438739839194:role/crypto-service-EncryptFunctionRole-MH3BjG8ezppJ
 
 Parameters:
   KMSKeyId:
@@ -101,13 +102,6 @@ Resources:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
-      Policies:
-        - Statement:
-            - Effect: Allow
-              Action:
-                - kms:Encrypt
-                - kms:GenerateDataKey
-              Resource: !Ref KMSKeyId
       Events:
         Encrypt:
           Type: Api
@@ -135,12 +129,6 @@ Resources:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
-      Policies:
-        - Statement:
-            - Effect: Allow
-              Action:
-                - kms:Decrypt
-              Resource: !Ref KMSKeyId
       Events:
         Decrypt:
           Type: Api

@@ -43,3 +43,14 @@ warm_containers = "EAGER"
 
 [default.local_start_lambda.parameters]
 warm_containers = "EAGER"
+
+# 添加 eu-central-1 区域配置
+[eu-central-1.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+resolve_s3 = true
+stack_name = "crypto-service-eu-central-1"
+s3_prefix = "crypto-service-eu-central-1"
+region = "eu-central-1"
+no_fail_on_empty_changeset = true
+parameter_overrides = "KMSKeyId=\"arn:aws:kms:eu-central-1:438739839194:key/your-kms-key-id\""
