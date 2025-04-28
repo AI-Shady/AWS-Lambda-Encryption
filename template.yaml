@@ -16,12 +16,11 @@ Globals:
     Environment:
       Variables:
         NODE_PATH: ./node_modules:/opt/nodejs/node_modules
-    Role: arn:aws:iam::438739839194:role/crypto-service-EncryptFunctionRole-MH3BjG8ezppJ
 
 Parameters:
   KMSKeyId:
     Type: String
-    Description: The KMS Key ID to use for encryption and decryption
+    Description: The KMS Key ARN to use for encryption and decryption
   ApiKeyValue:
     Type: String
     Description: The value for the API Key
@@ -29,7 +28,7 @@ Parameters:
 
 Resources:
   # API Gateway API definition
-  ApiGatewayApi:
+  ApiGateway:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
@@ -45,7 +44,7 @@ Resources:
   # API Key definition
   ApiKey:
     Type: AWS::ApiGateway::ApiKey
-    DependsOn: ApiGatewayApiProdStage  # Ensure API is deployed before creating
+    DependsOn: ApiGatewayProdStage
     Properties:
       Enabled: true
       Name: crypto-service-api-key
@@ -55,17 +54,20 @@ Resources:
   # Usage plan definition
   UsagePlan:
     Type: AWS::ApiGateway::UsagePlan
-    DependsOn: ApiGatewayApiProdStage  # Explicitly add dependency
+    DependsOn: ApiGatewayProdStage
     Properties:
       UsagePlanName: crypto-service-usage-plan
       Description: "Usage plan for Crypto Service"
       ApiStages:
-        - ApiId: !Ref ApiGatewayApi
+        - ApiId: !Ref ApiGateway
           Stage: Prod
 
   # Associate API Key with usage plan
   UsagePlanKey:
     Type: AWS::ApiGateway::UsagePlanKey
+    DependsOn: 
+      - ApiKey
+      - UsagePlan
     Properties:
       KeyId: !Ref ApiKey
       KeyType: API_KEY
@@ -80,7 +82,7 @@ Resources:
         HelloWorld:
           Type: Api
           Properties:
-            RestApiId: !Ref ApiGatewayApi
+            RestApiId: !Ref ApiGateway
             Path: /hello
             Method: get
     Metadata:
@@ -102,11 +104,19 @@ Resources:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:Encrypt
+                - kms:Decrypt
+                - kms:GenerateDataKey
+              Resource: !Ref KMSKeyId
       Events:
         Encrypt:
           Type: Api
           Properties:
-            RestApiId: !Ref ApiGatewayApi
+            RestApiId: !Ref ApiGateway
             Path: /encrypt
             Method: post
     Metadata:
@@ -129,11 +139,19 @@ Resources:
         Variables:
           KMS_KEY_ID: !Ref KMSKeyId
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - kms:Encrypt
+                - kms:Decrypt
+                - kms:GenerateDataKey
+              Resource: !Ref KMSKeyId
       Events:
         Decrypt:
           Type: Api
           Properties:
-            RestApiId: !Ref ApiGatewayApi
+            RestApiId: !Ref ApiGateway
             Path: /decrypt
             Method: post
     Metadata:
@@ -147,30 +165,24 @@ Resources:
         - lib/crypto-utils.ts
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   ApiGatewayUrl:
     Description: "API Gateway endpoint URL"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   ApiKeyId:
     Description: "API Key ID"
     Value: !Ref ApiKey
   HelloWorldFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
   HelloWorldApi:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
   EncryptApi:
     Description: "API Gateway endpoint URL for Prod stage for Encrypt function"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/encrypt/"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/encrypt/"
   DecryptApi:
     Description: "API Gateway endpoint URL for Prod stage for Decrypt function"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/decrypt/"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/decrypt/"
   EncryptFunction:
     Description: "Encrypt Lambda Function ARN"
     Value: !GetAtt EncryptFunction.Arn

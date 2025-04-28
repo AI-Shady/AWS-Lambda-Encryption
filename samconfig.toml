@@ -20,7 +20,6 @@ no_fail_on_empty_changeset = true
 s3_prefix = "crypto-service"
 region = "us-west-2"
 disable_rollback = true
-parameter_overrides = "KMSKeyId=\"arn:aws:kms:us-west-2:438739839194:key/15d9cbfc-2ea1-48c2-accc-53847bbe56b2\""
 image_repositories = []
 
 [prod.deploy.parameters]
@@ -53,4 +52,3 @@ stack_name = "crypto-service-eu-central-1"
 s3_prefix = "crypto-service-eu-central-1"
 region = "eu-central-1"
 no_fail_on_empty_changeset = true
-parameter_overrides = "KMSKeyId=\"arn:aws:kms:eu-central-1:438739839194:key/your-kms-key-id\""
