@@ -1,7 +1,7 @@
 import { KmsKeyringNode, buildClient, CommitmentPolicy } from '@aws-crypto/client-node';
 
 // Initialize encryption client
-export const { encrypt, decrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
+const { encrypt: awsEncrypt, decrypt: awsDecrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
 
 // Default encryption context
 export const defaultEncryptionContext = {
@@ -23,6 +23,18 @@ export const createKeyring = async (): Promise<KmsKeyringNode> => {
     console.error('Error creating KMS keyring:', error);
     throw error;
   }
+};
+
+// Wrapped encrypt function
+export const encrypt = async (keyring: KmsKeyringNode, data: Buffer, options?: { encryptionContext?: Record<string, string> }) => {
+  console.log('Encrypting with context:', options?.encryptionContext);
+  return awsEncrypt(keyring, data, options);
+};
+
+// Wrapped decrypt function
+export const decrypt = async (keyring: KmsKeyringNode, data: Buffer, options?: { encryptionContext?: Record<string, string> }) => {
+  console.log('Decrypting with context:', options?.encryptionContext);
+  return awsDecrypt(keyring, data);
 };
 
 // API response interface

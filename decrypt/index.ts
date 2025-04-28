@@ -28,7 +28,7 @@ export const lambdaHandler = async (
     // Convert Base64 to Buffer
     const encryptedBuffer = Buffer.from(encryptedData, 'base64');
     
-    // Decrypt data with provided context
+    // Decrypt data with context
     const { plaintext } = await decrypt(keyring, encryptedBuffer, {
       encryptionContext
     });
