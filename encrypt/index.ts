@@ -16,7 +16,7 @@ export const lambdaHandler = async (
     }
 
     const parsedBody = JSON.parse(event.body);
-    const { data } = parsedBody;
+    const { data, encryptionContext = defaultEncryptionContext } = parsedBody;
 
     if (!data) {
       return createErrorResponse(400, 'Data field is required');
@@ -25,9 +25,9 @@ export const lambdaHandler = async (
     // Create KMS keyring
     const keyring = await createKeyring();
     
-    // Encrypt data with default context
+    // Encrypt data with context
     const { result } = await encrypt(keyring, Buffer.from(data), {
-      encryptionContext: defaultEncryptionContext
+      encryptionContext
     });
     
     // Convert to Base64
@@ -37,7 +37,7 @@ export const lambdaHandler = async (
     return createSuccessResponse({
       message: 'Data encrypted successfully',
       encryptedData,
-      encryptionContext: defaultEncryptionContext,
+      encryptionContext
     });
   } catch (err) {
     console.error('Error in encryption process:', err);
