@@ -15,12 +15,10 @@ AWS-Lambda-Encryption/
 │   ├── index.ts          # Function entry point
 │   ├── package.json      # Function dependencies
 │   └── tsconfig.json     # TypeScript configuration
-├── hello/                # Hello World Lambda function
-│   ├── app.ts           # Function entry point
-│   ├── package.json     # Function dependencies
-│   └── tsconfig.json    # TypeScript configuration
 ├── lib/                  # Shared code library
-│   └── crypto-utils.ts  # Encryption utility functions
+│   ├── crypto-utils.ts   # Encryption utility functions
+│   ├── package.json      # Library dependencies
+│   └── tsconfig.json     # TypeScript configuration
 ├── events/              # Test events
 ├── template.yaml        # SAM template
 ├── samconfig.toml       # SAM configuration
@@ -30,41 +28,61 @@ AWS-Lambda-Encryption/
 
 ## Features
 
-- AWS KMS-based data encryption
-- AWS KMS-based data decryption
-- RESTful API endpoints
-- TypeScript support
+- AWS KMS integration for encryption/decryption
+- Secure RESTful API endpoints
+- Full TypeScript support
 - Unit testing support
 - API key authentication
-- VPC support
 - Service discovery
+- IAM role-based access control
+- Custom domain support via API Gateway
 
 ## Architecture
 
 This project follows a microservices architecture approach, where each Lambda function operates as an independent service:
 
 1. **Encryption Service (EncryptFunction)**
-   - Path: `/crypto/encrypt`
+   - Path: `/encrypt`
    - Method: POST
    - Function: Encrypts data using KMS
 
 2. **Decryption Service (DecryptFunction)**
-   - Path: `/crypto/decrypt`
+   - Path: `/decrypt`
    - Method: POST
    - Function: Decrypts data using KMS
 
-3. **Hello World Service (HelloWorldFunction)**
-   - Path: `/hello`
-   - Method: GET
-   - Function: Example service
+## Extension Points
+
+### Custom Domain Configuration
+
+You can configure a custom domain for your API using API Gateway's custom domain feature. This provides:
+- Professional, branded URLs for your API endpoints
+- Simplified API versioning through base path mappings
+- SSL/TLS certificate management through AWS Certificate Manager
+- Regional or Edge-optimized endpoint options
+
+Example custom domain setup:
+```bash
+# Create custom domain (requires ACM certificate)
+aws apigateway create-domain-name \
+    --domain-name api.yourdomain.com \
+    --regional-certificate-arn your-cert-arn \
+    --endpoint-configuration types=REGIONAL
+
+# Create base path mapping
+aws apigateway create-base-path-mapping \
+    --domain-name api.yourdomain.com \
+    --rest-api-id your-api-id \
+    --stage Prod
+```
 
 ## Tech Stack
 
 - AWS Lambda
 - AWS KMS
 - API Gateway
-- TypeScript
-- Node.js
+- TypeScript 5.x
+- Node.js 18.x or higher
 - AWS SAM
 - esbuild
 
@@ -81,8 +99,10 @@ This project follows a microservices architecture approach, where each Lambda fu
 1. Install Dependencies
 
 ```bash
-# Install project dependencies
-npm install
+# Install dependencies for all functions and shared library
+cd lib && npm install
+cd ../encrypt && npm install
+cd ../decrypt && npm install
 
 # Install SAM CLI
 brew install aws-sam-cli
@@ -100,9 +120,6 @@ Create or update `env.json` with your environment variables:
   },
   "DecryptFunction": {
     "KMS_KEY_ID": "your-kms-key-arn",
-    "API_KEY_VALUE": "your-api-key"
-  },
-  "HelloWorldFunction": {
     "API_KEY_VALUE": "your-api-key"
   }
 }
@@ -154,7 +171,7 @@ sam deploy
 ### Encrypt Data
 
 ```bash
-curl -X POST https://your-api-url/crypto/encrypt \
+curl -X POST https://your-api-url/encrypt \
   -H "x-api-key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{"data": "your-data-to-encrypt"}'
@@ -163,17 +180,10 @@ curl -X POST https://your-api-url/crypto/encrypt \
 ### Decrypt Data
 
 ```bash
-curl -X POST https://your-api-url/crypto/decrypt \
+curl -X POST https://your-api-url/decrypt \
   -H "x-api-key: your-api-key" \
   -H "Content-Type: application/json" \
   -d '{"encryptedData": "your-encrypted-data"}'
-```
-
-### Hello World
-
-```bash
-curl https://your-api-url/hello \
-  -H "x-api-key: your-api-key"
 ```
 
 ## Security
@@ -197,9 +207,9 @@ curl https://your-api-url/hello \
 
 ```bash
 # Update function dependencies
-cd encrypt && npm update
+cd lib && npm update
+cd ../encrypt && npm update
 cd ../decrypt && npm update
-cd ../hello && npm update
 ```
 
 2. Add New Function
@@ -260,3 +270,10 @@ For issues and feature requests, please use the GitHub issue tracker.
 - [AWS Lambda Documentation](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html)
 - [AWS KMS Documentation](https://docs.aws.amazon.com/kms/latest/developerguide/overview.html)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+
+## Notes
+
+- This project is fully TypeScript-based
+- All JavaScript files have been removed in favor of TypeScript
+- Each function has its own TypeScript configuration
+- Shared library (lib) contains common utilities used across functions

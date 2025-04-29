@@ -73,27 +73,6 @@ Resources:
       KeyType: API_KEY
       UsagePlanId: !Ref UsagePlan
 
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: hello/
-      Handler: app.lambdaHandler
-      Events:
-        HelloWorld:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ApiGateway
-            Path: /hello
-            Method: get
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "es2020"
-        Sourcemap: true
-        EntryPoints: 
-        - app.ts
-
   # Encryption function
   EncryptFunction:
     Type: AWS::Serverless::Function
@@ -171,12 +150,6 @@ Outputs:
   ApiKeyId:
     Description: "API Key ID"
     Value: !Ref ApiKey
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
   EncryptApi:
     Description: "API Gateway endpoint URL for Prod stage for Encrypt function"
     Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/encrypt/"
