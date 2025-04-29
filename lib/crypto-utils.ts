@@ -1,40 +1,13 @@
-import { KmsKeyringNode, buildClient, CommitmentPolicy } from '@aws-crypto/client-node';
+import { KMSClient, EncryptCommand, DecryptCommand } from "@aws-sdk/client-kms";
 
-// Initialize encryption client
-const { encrypt: awsEncrypt, decrypt: awsDecrypt } = buildClient(CommitmentPolicy.REQUIRE_ENCRYPT_ALLOW_DECRYPT);
+// Initialize KMS client
+const kmsClient = new KMSClient({});
 
 // Default encryption context
 export const defaultEncryptionContext = {
   stage: 'local',
   purpose: 'test',
   origin: 'encryption-service'
-};
-
-// Create KMS keyring
-export const createKeyring = async (): Promise<KmsKeyringNode> => {
-  try {
-    const keyId = process.env.KMS_KEY_ID;
-    if (!keyId) {
-      throw new Error('KMS_KEY_ID environment variable is required');
-    }
-    
-    return new KmsKeyringNode({ generatorKeyId: keyId });
-  } catch (error) {
-    console.error('Error creating KMS keyring:', error);
-    throw error;
-  }
-};
-
-// Wrapped encrypt function
-export const encrypt = async (keyring: KmsKeyringNode, data: Buffer, options?: { encryptionContext?: Record<string, string> }) => {
-  console.log('Encrypting with context:', options?.encryptionContext);
-  return awsEncrypt(keyring, data, options);
-};
-
-// Wrapped decrypt function
-export const decrypt = async (keyring: KmsKeyringNode, data: Buffer, options?: { encryptionContext?: Record<string, string> }) => {
-  console.log('Decrypting with context:', options?.encryptionContext);
-  return awsDecrypt(keyring, data);
 };
 
 // API response interface
@@ -56,4 +29,51 @@ export const createErrorResponse = (statusCode: number, message: string, error?:
     message,
     error: error instanceof Error ? error.message : error || 'Unknown error'
   })
-}); 
+});
+
+export async function encryptData(
+  plaintext: string,
+  kmsKeyId: string,
+  context?: Record<string, string>
+): Promise<{ ciphertext: string; encryptionContext: Record<string, string> }> {
+  const encryptionContext = context || defaultEncryptionContext;
+  
+  const command = new EncryptCommand({
+    KeyId: kmsKeyId,
+    Plaintext: Buffer.from(plaintext),
+    EncryptionContext: encryptionContext,
+  });
+
+  const response = await kmsClient.send(command);
+  
+  if (!response.CiphertextBlob) {
+    throw new Error("Encryption failed: No ciphertext returned");
+  }
+
+  return {
+    ciphertext: Buffer.from(response.CiphertextBlob).toString("base64"),
+    encryptionContext,
+  };
+}
+
+export async function decryptData(
+  ciphertext: string,
+  kmsKeyId: string,
+  context?: Record<string, string>
+): Promise<string> {
+  const encryptionContext = context || defaultEncryptionContext;
+  
+  const command = new DecryptCommand({
+    KeyId: kmsKeyId,
+    CiphertextBlob: Buffer.from(ciphertext, "base64"),
+    EncryptionContext: encryptionContext,
+  });
+
+  const response = await kmsClient.send(command);
+  
+  if (!response.Plaintext) {
+    throw new Error("Decryption failed: No plaintext returned");
+  }
+
+  return Buffer.from(response.Plaintext).toString();
+} 

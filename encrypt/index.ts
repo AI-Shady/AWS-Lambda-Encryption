@@ -1,46 +1,52 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { 
-  createKeyring, 
-  encrypt, 
-  defaultEncryptionContext,
-  createSuccessResponse,
-  createErrorResponse
-} from '../lib/crypto-utils';
+import { encryptData } from '../lib/crypto-utils';
 
 export const lambdaHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
     if (!event.body) {
-      return createErrorResponse(400, 'No data provided');
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: 'Request body is required',
+        }),
+      };
     }
 
-    const parsedBody = JSON.parse(event.body);
-    const { data, encryptionContext = defaultEncryptionContext } = parsedBody;
+    const { data, context } = JSON.parse(event.body);
 
     if (!data) {
-      return createErrorResponse(400, 'Data field is required');
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: 'Data is required',
+        }),
+      };
     }
 
-    // Create KMS keyring
-    const keyring = await createKeyring();
-    
-    // Encrypt data with context
-    const { result } = await encrypt(keyring, Buffer.from(data), {
-      encryptionContext
-    });
-    
-    // Convert to Base64
-    const encryptedData = result.toString('base64');
-    
-    // Return success response
-    return createSuccessResponse({
-      message: 'Data encrypted successfully',
-      encryptedData,
-      encryptionContext
-    });
-  } catch (err) {
-    console.error('Error in encryption process:', err);
-    return createErrorResponse(500, 'Error encrypting data', err);
+    const kmsKeyId = process.env.KMS_KEY_ID;
+    if (!kmsKeyId) {
+      throw new Error('KMS_KEY_ID environment variable is not set');
+    }
+
+    const result = await encryptData(data, kmsKeyId, context);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        ciphertext: result.ciphertext,
+        encryptionContext: result.encryptionContext,
+      }),
+    };
+  } catch (error) {
+    console.error('Encryption error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: 'Encryption failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }),
+    };
   }
 }; 
