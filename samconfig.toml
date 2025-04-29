@@ -3,7 +3,7 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "crypto-service"
+stack_name = "encryption-service"
 
 [default.build.parameters]
 cached = true
@@ -17,7 +17,7 @@ capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
 no_fail_on_empty_changeset = true
-s3_prefix = "crypto-service"
+s3_prefix = "encryption-service"
 region = "us-west-2"
 disable_rollback = true
 image_repositories = []
@@ -26,8 +26,8 @@ image_repositories = []
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = false
 resolve_s3 = true
-stack_name = "crypto-service-prod"
-s3_prefix = "crypto-service-prod"
+stack_name = "encryption-service-prod"
+s3_prefix = "encryption-service-prod"
 region = "us-west-2"
 no_fail_on_empty_changeset = true
 
@@ -48,7 +48,7 @@ warm_containers = "EAGER"
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = false
 resolve_s3 = true
-stack_name = "crypto-service-eu-central-1"
-s3_prefix = "crypto-service-eu-central-1"
+stack_name = "encryption-service-eu-central-1"
+s3_prefix = "encryption-service-eu-central-1"
 region = "eu-central-1"
 no_fail_on_empty_changeset = true

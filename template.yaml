@@ -47,7 +47,7 @@ Resources:
     DependsOn: ApiGatewayProdStage
     Properties:
       Enabled: true
-      Name: crypto-service-api-key
+      Name: encryption-service-api-key
       Value: !Ref ApiKeyValue
       Description: "API Key for Crypto Service"
 
@@ -56,7 +56,7 @@ Resources:
     Type: AWS::ApiGateway::UsagePlan
     DependsOn: ApiGatewayProdStage
     Properties:
-      UsagePlanName: crypto-service-usage-plan
+      UsagePlanName: encryption-service-usage-plan
       Description: "Usage plan for Crypto Service"
       ApiStages:
         - ApiId: !Ref ApiGateway

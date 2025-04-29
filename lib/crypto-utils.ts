@@ -7,7 +7,7 @@ const { encrypt: awsEncrypt, decrypt: awsDecrypt } = buildClient(CommitmentPolic
 export const defaultEncryptionContext = {
   stage: 'local',
   purpose: 'test',
-  origin: 'crypto-service'
+  origin: 'encryption-service'
 };
 
 // Create KMS keyring
